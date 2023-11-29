@@ -1,0 +1,85 @@
+﻿@using System.Security.Claims;
+@using FPLSP_Tutorial.WASM.Pages.Recreation;
+@inherits LayoutComponentBase
+
+@inject AuthenticationStateProvider _authProvider;
+@inject NavigationManager _nav
+
+<MudThemeProvider />
+<MudDialogProvider FullWidth="true" />
+<MudSnackbarProvider />
+
+<style>
+    .custom-layout-color {
+        background-color: rgb(255, 255, 255);
+    }
+
+
+</style>
+
+<MudLayout>
+    <MudAppBar Elevation="0" Class="custom-layout-color" Style="border-bottom: 1px solid lightgrey;">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="ContentColor" Edge="Edge.Start" OnClick="@ToggleDrawer" />
+        <MudSpacer />
+        <div>
+            <MudText Color="ContentColor" Typo="Typo.subtitle2">@(_displayName)</MudText>
+            <MudText Color="ContentColor" Typo="Typo.caption">@(_displayEmail)</MudText>
+        </div>
+        <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="ContentColor" Title="Đăng xuất" OnClick="@(async() => await OnLogout())" />
+    </MudAppBar>
+        <MudDrawer @bind-Open="@open" Variant="DrawerVariant.Mini" Elevation="0" Class="custom-layout-color">
+        <MudDrawerHeader Class="top-row px-4 d-flex align-center" >
+            @if(open)
+            {
+                <MudText Typo="Typo.h6">FPLSP Tutorial</MudText>
+            }
+        </MudDrawerHeader>
+        
+        <MudNavMenu>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" Href="/recreation/post/client">Trang chủ</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.List" Href="/recreation/major">Quản lý chuyên ngành</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.SupervisorAccount" Href="/recreation/lecturer-manager">Quản lý giảng viên</MudNavLink>
+            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Newspaper" Href="/recreation/post-manager">Quản lý bài viết</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+    <MudMainContent >
+        <div style="
+                background-color: rgba(247, 251, 255, 1); 
+                min-height: calc(100vh - var(--mud-appbar-height));
+                border-top: 1px solid lightgrey; 
+                border-left: 1px solid lightgrey;">
+            @Body
+        </div>
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool open = false;
+
+    private string _displayName = "";
+    private string _displayEmail = "";
+
+    private Color ContentColor = Color.Dark;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var state = await _authProvider.GetAuthenticationStateAsync();
+        var lstClaim = state.User.Claims;
+        var claimName = lstClaim.FirstOrDefault(c => c.Type == ClaimTypes.Name);
+        _displayName = claimName == null ? "<N/A>" : claimName.Value.ToString();
+        var claimEmail = lstClaim.FirstOrDefault(c => c.Type == ClaimTypes.Email);
+        _displayEmail = claimEmail == null ? "<N/A>" : claimEmail.Value.ToString();
+    }
+
+    void ToggleDrawer()
+    {
+        open = !open;
+    }
+
+    private async Task OnLogout()
+    {
+        var customAuth = (CustomAuthenticationStateProvider)_authProvider;
+        await customAuth.UpdateAuthenticationState(null);
+        _nav.NavigateTo("https://localhost:5000");
+    }
+}

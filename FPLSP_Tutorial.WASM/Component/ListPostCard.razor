@@ -1,0 +1,33 @@
+﻿@using FPLSP_Tutorial.WASM.Data.Client;
+@using FPLSP_Tutorial.WASM.Data.DataTransferObjects.Post;
+
+<div class="row">
+    @if(IsLoading)
+    {
+        for(int i = 1; i <= Convert.ToInt32(12 / CardCol); i++)
+        {
+            <PostCard IsSkeleton="true" Col="@CardCol" />
+        }
+    }
+    else
+    {
+        @foreach (var i in ListPost)
+        {
+            <PostCard Post="@i" Col="@CardCol" />
+        }
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<PostMainDTO> ListPost { get; set; } = new();
+
+    [Parameter]
+    public Guid? MajorId { get; set; } = null;
+
+    [Parameter]
+    public bool IsLoading { get; set; } = true;
+
+    [Parameter]
+    public int CardCol { get; set; } = 3;
+}
